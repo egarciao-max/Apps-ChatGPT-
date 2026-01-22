@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0b0f1a" />
+  <title>GlassBudget Teen PWA</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2372f1ff'/%3E%3Cstop offset='1' stop-color='%236a7bff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect x='6' y='6' width='52' height='52' rx='16' fill='url(%23g)'/%3E%3Cpath d='M20 24h24M20 32h16M20 40h20' stroke='%230b0f1a' stroke-width='4' stroke-linecap='round'/%3E%3C/svg%3E" />
+</head>
+<body>
+  <div class="background">
+    <div class="orb orb-a"></div>
+    <div class="orb orb-b"></div>
+    <div class="orb orb-c"></div>
+  </div>
+
+  <header class="app-header">
+    <div>
+      <p class="overline">GlassBudget</p>
+      <h1>Personal Finance</h1>
+    </div>
+    <button class="pill" id="installBtn" hidden>Install</button>
+  </header>
+
+  <main class="app">
+    <section id="home" class="view active">
+      <div class="glass card summary">
+        <div>
+          <p class="label">Money left this week</p>
+          <h2 id="moneyLeft">$0</h2>
+          <p class="muted" id="weekRange"></p>
+        </div>
+        <div class="ring" aria-hidden="true">
+          <div class="ring-inner">
+            <span class="muted">Weekly</span>
+            <strong id="budgetValue">$0</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="glass card">
+        <div class="row between">
+          <div>
+            <p class="label">Weekly budget</p>
+            <h3 id="weeklyBudget">$0</h3>
+          </div>
+          <button class="chip" data-open="budgetSheet">Edit</button>
+        </div>
+        <div class="divider"></div>
+        <div class="row between">
+          <div>
+            <p class="label">Week starts</p>
+            <p class="value" id="weekStartLabel">Sunday</p>
+          </div>
+          <button class="chip" data-open="settingsSheet">Change</button>
+        </div>
+      </div>
+
+      <div class="glass card">
+        <div class="row between">
+          <div>
+            <p class="label">Savings goal</p>
+            <h3 id="savingsGoal">$0</h3>
+          </div>
+          <button class="chip" data-open="goalSheet">Set</button>
+        </div>
+        <div class="progress">
+          <div class="progress-fill" id="goalProgress"></div>
+        </div>
+        <div class="row between">
+          <p class="muted" id="goalProgressLabel">0% saved</p>
+          <p class="muted" id="goalSavedLabel">$0 saved</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="add" class="view">
+      <div class="glass card">
+        <h2>Add expense</h2>
+        <form id="expenseForm" autocomplete="off">
+          <label>
+            <span>Amount</span>
+            <input type="number" id="amount" min="0" step="0.01" placeholder="$0.00" required />
+          </label>
+          <label>
+            <span>Category</span>
+            <select id="category" required>
+              <option value="Food">Food</option>
+              <option value="Transport">Transport</option>
+              <option value="Entertainment">Entertainment</option>
+              <option value="Shopping">Shopping</option>
+              <option value="School">School</option>
+              <option value="Subscriptions">Subscriptions</option>
+              <option value="Other">Other</option>
+            </select>
+          </label>
+          <label>
+            <span>Note</span>
+            <input type="text" id="note" maxlength="40" placeholder="Optional" />
+          </label>
+          <label>
+            <span>Date</span>
+            <input type="date" id="date" required />
+          </label>
+          <button type="submit" class="primary">Save expense</button>
+        </form>
+      </div>
+    </section>
+
+    <section id="history" class="view">
+      <div class="glass card">
+        <div class="row between">
+          <h2>History</h2>
+          <span class="muted" id="historyCount">0 items</span>
+        </div>
+        <div id="historyList" class="list"></div>
+      </div>
+    </section>
+
+    <section id="insights" class="view">
+      <div class="glass card">
+        <h2>Insights</h2>
+        <div class="insight">
+          <p class="label">Top category</p>
+          <h3 id="topCategory">—</h3>
+        </div>
+        <div class="insight">
+          <p class="label">Average daily spend</p>
+          <h3 id="avgDaily">$0</h3>
+        </div>
+        <div class="insight">
+          <p class="label">Total this week</p>
+          <h3 id="weekTotal">$0</h3>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="bottom-nav glass">
+    <button class="nav-item active" data-target="home">
+      <span>Home</span>
+    </button>
+    <button class="nav-item" data-target="add">
+      <span>Add</span>
+    </button>
+    <button class="nav-item" data-target="history">
+      <span>History</span>
+    </button>
+    <button class="nav-item" data-target="insights">
+      <span>Insights</span>
+    </button>
+  </nav>
+
+  <div class="sheet" id="budgetSheet" aria-hidden="true">
+    <div class="glass sheet-content">
+      <h3>Weekly budget</h3>
+      <label>
+        <span>Budget amount</span>
+        <input type="number" id="budgetInput" min="0" step="0.01" />
+      </label>
+      <button class="primary" id="saveBudget">Save</button>
+      <button class="ghost" data-close>Cancel</button>
+    </div>
+  </div>
+
+  <div class="sheet" id="goalSheet" aria-hidden="true">
+    <div class="glass sheet-content">
+      <h3>Savings goal</h3>
+      <label>
+        <span>Goal amount</span>
+        <input type="number" id="goalInput" min="0" step="0.01" />
+      </label>
+      <label>
+        <span>Current saved</span>
+        <input type="number" id="goalSavedInput" min="0" step="0.01" />
+      </label>
+      <button class="primary" id="saveGoal">Save</button>
+      <button class="ghost" data-close>Cancel</button>
+    </div>
+  </div>
+
+  <div class="sheet" id="settingsSheet" aria-hidden="true">
+    <div class="glass sheet-content">
+      <h3>Week start day</h3>
+      <label>
+        <span>Start day</span>
+        <select id="weekStartSelect">
+          <option value="0">Sunday</option>
+          <option value="1">Monday</option>
+          <option value="2">Tuesday</option>
+          <option value="3">Wednesday</option>
+          <option value="4">Thursday</option>
+          <option value="5">Friday</option>
+          <option value="6">Saturday</option>
+        </select>
+      </label>
+      <button class="primary" id="saveSettings">Save</button>
+      <button class="ghost" data-close>Cancel</button>
+    </div>
+  </div>
+
+  <div class="sheet" id="editSheet" aria-hidden="true">
+    <div class="glass sheet-content">
+      <h3>Edit expense</h3>
+      <label>
+        <span>Amount</span>
+        <input type="number" id="editAmount" min="0" step="0.01" />
+      </label>
+      <label>
+        <span>Category</span>
+        <select id="editCategory">
+          <option value="Food">Food</option>
+          <option value="Transport">Transport</option>
+          <option value="Entertainment">Entertainment</option>
+          <option value="Shopping">Shopping</option>
+          <option value="School">School</option>
+          <option value="Subscriptions">Subscriptions</option>
+          <option value="Other">Other</option>
+        </select>
+      </label>
+      <label>
+        <span>Note</span>
+        <input type="text" id="editNote" maxlength="40" />
+      </label>
+      <label>
+        <span>Date</span>
+        <input type="date" id="editDate" />
+      </label>
+      <button class="primary" id="saveEdit">Update</button>
+      <button class="ghost" data-close>Cancel</button>
+    </div>
+  </div>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
