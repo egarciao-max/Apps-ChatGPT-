@@ -1,63 +1,52 @@
-const storeKey = "glassbudget-data";
-const defaultData = {
-  weeklyBudget: 50,
-  weekStart: 1,
-  goalAmount: 100,
-  goalSaved: 20,
-  transactions: [],
+const storeKey = "mun-debate-state";
+const defaultState = {
+  country: "",
+  committee: "",
+  focus: "",
+  topic: "",
+  positionPaper: "",
+  debateLog: [],
+  strikes: 0,
   theme: "auto",
 };
 
 const state = loadState();
 
-const weekTitle = document.getElementById("weekTitle");
-const moneyLeft = document.getElementById("moneyLeft");
-const budgetSummary = document.getElementById("budgetSummary");
-const budgetProgress = document.getElementById("budgetProgress");
-const budgetStatus = document.getElementById("budgetStatus");
-const weeklyBudgetDisplay = document.getElementById("weeklyBudgetDisplay");
-const weekStartDisplay = document.getElementById("weekStartDisplay");
-const goalSummary = document.getElementById("goalSummary");
-const goalProgress = document.getElementById("goalProgress");
-const goalStatus = document.getElementById("goalStatus");
-const recentList = document.getElementById("recentList");
-const historyList = document.getElementById("historyList");
-const categoryTotals = document.getElementById("categoryTotals");
-const topCategory = document.getElementById("topCategory");
-const avgDaily = document.getElementById("avgDaily");
+const activeCountry = document.getElementById("activeCountry");
+const activeCommittee = document.getElementById("activeCommittee");
+const strikeCount = document.getElementById("strikeCount");
 
-const expenseForm = document.getElementById("expenseForm");
-const expenseAmount = document.getElementById("expenseAmount");
-const expenseCategory = document.getElementById("expenseCategory");
-const expenseNote = document.getElementById("expenseNote");
-const expenseDate = document.getElementById("expenseDate");
+const setupForm = document.getElementById("setupForm");
+const countrySelect = document.getElementById("countrySelect");
+const committeeSelect = document.getElementById("committeeSelect");
+const focusInput = document.getElementById("focusInput");
+const saveSetup = document.getElementById("saveSetup");
 
-const budgetModal = document.getElementById("budgetModal");
-const weeklyBudgetInput = document.getElementById("weeklyBudgetInput");
-const weekStartInput = document.getElementById("weekStartInput");
-const goalModal = document.getElementById("goalModal");
-const goalAmountInput = document.getElementById("goalAmountInput");
-const goalSavedInput = document.getElementById("goalSavedInput");
+const paperForm = document.getElementById("paperForm");
+const topicInput = document.getElementById("topicInput");
+const paperInput = document.getElementById("paperInput");
+const submitPaper = document.getElementById("submitPaper");
+const paperStatus = document.getElementById("paperStatus");
 
-const transactionTemplate = document.getElementById("transactionTemplate");
+const debateLog = document.getElementById("debateLog");
+const speechForm = document.getElementById("speechForm");
+const speechInput = document.getElementById("speechInput");
+const strikeWarning = document.getElementById("strikeWarning");
+const clearDebate = document.getElementById("clearDebate");
 
-const weekDays = [
-  "Sunday",
-  "Monday",
-  "Tuesday",
-  "Wednesday",
-  "Thursday",
-  "Friday",
-  "Saturday",
-];
+const resolutionInput = document.getElementById("resolutionInput");
+const feedbackPanel = document.getElementById("feedbackPanel");
+const generateFeedback = document.getElementById("generateFeedback");
+
+const pronounRegex = /\b(i|me|my|mine|myself|we|us|our|ours|ourselves|you|your|yours|yourself|yourselves|i'm|i've|i am|we're|we are|you're|you are)\b/i;
 
 function loadState() {
   const stored = localStorage.getItem(storeKey);
-  if (!stored) return { ...defaultData };
+  if (!stored) return { ...defaultState };
   try {
-    return { ...defaultData, ...JSON.parse(stored) };
+    return { ...defaultState, ...JSON.parse(stored) };
   } catch (error) {
-    return { ...defaultData };
+    return { ...defaultState };
   }
 }
 
@@ -65,239 +54,167 @@ function saveState() {
   localStorage.setItem(storeKey, JSON.stringify(state));
 }
 
-function formatCurrency(value) {
-  return `$${Number(value).toFixed(2)}`;
+function updateHeader() {
+  activeCountry.textContent = state.country || "Not selected";
+  activeCommittee.textContent = state.committee || "Not selected";
+  strikeCount.textContent = `${state.strikes} / 3`;
 }
 
-function currentWeekRange(date = new Date()) {
-  const start = new Date(date);
-  const diff = (start.getDay() - state.weekStart + 7) % 7;
-  start.setDate(start.getDate() - diff);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
-  end.setDate(start.getDate() + 6);
-  end.setHours(23, 59, 59, 999);
-  return { start, end };
+function renderPaperStatus() {
+  if (!state.positionPaper) {
+    paperStatus.textContent = "Awaiting submission.";
+    return;
+  }
+  paperStatus.textContent = "Position paper submitted for review.";
 }
 
-function setDefaultDate() {
-  const today = new Date();
-  expenseDate.valueAsDate = today;
-}
-
-function addTransaction(transaction) {
-  state.transactions.unshift(transaction);
-  saveState();
-  render();
-}
-
-function updateTransaction(id, updates) {
-  const item = state.transactions.find((tx) => tx.id === id);
-  if (!item) return;
-  Object.assign(item, updates);
-  saveState();
-  render();
-}
-
-function deleteTransaction(id) {
-  state.transactions = state.transactions.filter((tx) => tx.id !== id);
-  saveState();
-  render();
-}
-
-function render() {
-  const { start, end } = currentWeekRange();
-  const weekTransactions = state.transactions.filter((tx) => {
-    const date = new Date(tx.date);
-    return date >= start && date <= end;
-  });
-
-  const spent = weekTransactions.reduce((sum, tx) => sum + tx.amount, 0);
-  const moneyRemaining = Math.max(state.weeklyBudget - spent, 0);
-  const progress = state.weeklyBudget ? Math.min((spent / state.weeklyBudget) * 100, 100) : 0;
-
-  weekTitle.textContent = `Week of ${start.toLocaleDateString(undefined, {
-    month: "short",
-    day: "numeric",
-  })}`;
-  moneyLeft.textContent = formatCurrency(moneyRemaining);
-  budgetSummary.textContent = `Budget ${formatCurrency(state.weeklyBudget)} • Spent ${formatCurrency(spent)}`;
-  budgetProgress.style.width = `${progress}%`;
-  budgetStatus.textContent = moneyRemaining > 0 ? "On track for the week." : "Budget maxed. Go slow.";
-
-  weeklyBudgetDisplay.textContent = formatCurrency(state.weeklyBudget);
-  weekStartDisplay.textContent = weekDays[state.weekStart];
-
-  goalSummary.textContent = `${formatCurrency(state.goalSaved)} / ${formatCurrency(state.goalAmount)}`;
-  const goalProgressValue = state.goalAmount ? Math.min((state.goalSaved / state.goalAmount) * 100, 100) : 0;
-  goalProgress.style.width = `${goalProgressValue}%`;
-  goalStatus.textContent = goalProgressValue >= 100 ? "Goal reached!" : "Every dollar counts ✨";
-
-  renderTransactions(recentList, state.transactions.slice(0, 4));
-  renderTransactions(historyList, state.transactions);
-  renderInsights();
-}
-
-function renderTransactions(list, transactions) {
-  list.innerHTML = "";
-  if (!transactions.length) {
+function renderDebateLog() {
+  debateLog.innerHTML = "";
+  if (!state.debateLog.length) {
     const empty = document.createElement("p");
     empty.className = "muted";
-    empty.textContent = "No transactions yet.";
-    list.appendChild(empty);
+    empty.textContent = "No speeches submitted yet. The dais awaits recognition.";
+    debateLog.appendChild(empty);
     return;
   }
 
-  transactions.forEach((tx) => {
-    const node = transactionTemplate.content.firstElementChild.cloneNode(true);
-    node.querySelector(".list-title").textContent = tx.note || tx.category;
-    node.querySelector(".list-sub").textContent = `${tx.category} • ${new Date(tx.date).toLocaleDateString()}`;
-    node.querySelector(".list-amount").textContent = `-${formatCurrency(tx.amount)}`;
-
-    node.querySelector(".edit").addEventListener("click", () => openEdit(tx));
-    node.querySelector(".delete").addEventListener("click", () => deleteTransaction(tx.id));
-
-    list.appendChild(node);
-  });
-}
-
-function renderInsights() {
-  const totals = {};
-  state.transactions.forEach((tx) => {
-    totals[tx.category] = (totals[tx.category] || 0) + tx.amount;
-  });
-
-  const top = Object.entries(totals).sort((a, b) => b[1] - a[1])[0];
-  topCategory.textContent = top ? `${top[0]} ${formatCurrency(top[1])}` : "--";
-
-  const { start } = currentWeekRange();
-  const today = new Date();
-  const days = Math.max(1, Math.ceil((today - start) / (1000 * 60 * 60 * 24)) + 1);
-  const spentThisWeek = state.transactions
-    .filter((tx) => new Date(tx.date) >= start)
-    .reduce((sum, tx) => sum + tx.amount, 0);
-  avgDaily.textContent = formatCurrency(spentThisWeek / days);
-
-  categoryTotals.innerHTML = "";
-  Object.entries(totals).forEach(([category, amount]) => {
+  state.debateLog.forEach((entry) => {
     const item = document.createElement("div");
-    item.className = "list-item";
-    item.innerHTML = `<p class="list-title">${category}</p><p class="list-amount">${formatCurrency(amount)}</p>`;
-    categoryTotals.appendChild(item);
+    item.className = "debate-entry";
+    item.innerHTML = `
+      <div class="meta">${entry.time} • ${entry.speaker}</div>
+      <strong>${entry.title}</strong>
+      <div>${entry.content}</div>
+      ${entry.badge ? `<span class="badge ${entry.badgeClass}">${entry.badge}</span>` : ""}
+    `;
+    debateLog.appendChild(item);
   });
-  if (!Object.keys(totals).length) {
-    const empty = document.createElement("p");
-    empty.className = "muted";
-    empty.textContent = "Add transactions to see insights.";
-    categoryTotals.appendChild(empty);
+}
+
+function updateFormValues() {
+  countrySelect.value = state.country;
+  committeeSelect.value = state.committee;
+  focusInput.value = state.focus;
+  topicInput.value = state.topic;
+  paperInput.value = state.positionPaper;
+}
+
+function addDebateEntry({ speaker, title, content, badge, badgeClass = "" }) {
+  state.debateLog.unshift({
+    speaker,
+    title,
+    content,
+    badge,
+    badgeClass,
+    time: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+  });
+  saveState();
+  renderDebateLog();
+}
+
+function buildAiResponse(speech) {
+  const country = state.country || "the delegate";
+  const committee = state.committee || "the committee";
+  const focusLine = state.focus ? `The dais notes the emphasis on ${state.focus}.` : "";
+  return `The representative of ${country} has been acknowledged. ${focusLine} ${committee} encourages a solution-oriented statement, concise operative language, and respect for diplomatic decorum. The chair invites elaboration on actionable mechanisms and multilateral alignment.`.trim();
+}
+
+function handleStrike(speech) {
+  if (!pronounRegex.test(speech)) {
+    strikeWarning.textContent = "";
+    return false;
   }
+  state.strikes = Math.min(state.strikes + 1, 3);
+  strikeWarning.textContent = "Strike issued: avoid first- or second-person language. Maintain third-person formal speech.";
+  return true;
 }
 
-function openEdit(transaction) {
-  expenseAmount.value = transaction.amount;
-  expenseCategory.value = transaction.category;
-  expenseNote.value = transaction.note;
-  expenseDate.value = transaction.date;
-  expenseForm.dataset.editing = transaction.id;
-  showView("add");
-}
-
-function showView(id) {
-  document.querySelectorAll(".view").forEach((view) => {
-    view.classList.toggle("active", view.id === id);
-  });
-  document.querySelectorAll(".nav-btn").forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.target === id);
-  });
-}
-
-function openModal(modal) {
-  modal.classList.add("open");
-}
-
-function closeModal(modal) {
-  modal.classList.remove("open");
-}
-
-function initNavigation() {
-  document.querySelectorAll(".nav-btn").forEach((btn) => {
-    btn.addEventListener("click", () => showView(btn.dataset.target));
-  });
-
-  document.getElementById("jumpHistory").addEventListener("click", () => showView("history"));
-}
-
-function initModals() {
-  document.getElementById("openBudget").addEventListener("click", () => {
-    weeklyBudgetInput.value = state.weeklyBudget;
-    weekStartInput.value = state.weekStart;
-    openModal(budgetModal);
-  });
-  document.getElementById("openGoal").addEventListener("click", () => {
-    goalAmountInput.value = state.goalAmount;
-    goalSavedInput.value = state.goalSaved;
-    openModal(goalModal);
-  });
-
-  document.querySelectorAll("[data-close]").forEach((btn) => {
-    btn.addEventListener("click", () => closeModal(document.getElementById(btn.dataset.close)));
-  });
-
-  document.getElementById("saveBudget").addEventListener("click", () => {
-    state.weeklyBudget = Number(weeklyBudgetInput.value) || 0;
-    state.weekStart = Number(weekStartInput.value);
+function initSetup() {
+  saveSetup.addEventListener("click", () => {
+    if (!setupForm.reportValidity()) return;
+    state.country = countrySelect.value;
+    state.committee = committeeSelect.value;
+    state.focus = focusInput.value.trim();
     saveState();
-    closeModal(budgetModal);
-    render();
-  });
-
-  document.getElementById("saveGoal").addEventListener("click", () => {
-    state.goalAmount = Number(goalAmountInput.value) || 0;
-    state.goalSaved = Number(goalSavedInput.value) || 0;
-    saveState();
-    closeModal(goalModal);
-    render();
+    updateHeader();
   });
 }
 
-function initForm() {
-  expenseForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    const data = {
-      id: expenseForm.dataset.editing || crypto.randomUUID(),
-      amount: Number(expenseAmount.value),
-      category: expenseCategory.value,
-      note: expenseNote.value.trim(),
-      date: expenseDate.value,
-    };
-
-    if (expenseForm.dataset.editing) {
-      updateTransaction(expenseForm.dataset.editing, data);
-      delete expenseForm.dataset.editing;
-    } else {
-      addTransaction(data);
-    }
-
-    expenseForm.reset();
-    setDefaultDate();
-    showView("home");
-  });
-
-  document.querySelectorAll(".chip").forEach((chip) => {
-    chip.addEventListener("click", () => {
-      expenseAmount.value = chip.dataset.amount;
-      expenseCategory.value = chip.dataset.category;
-      expenseNote.value = "";
-      setDefaultDate();
-      showView("add");
+function initPositionPaper() {
+  submitPaper.addEventListener("click", () => {
+    if (!paperForm.reportValidity()) return;
+    state.topic = topicInput.value.trim();
+    state.positionPaper = paperInput.value.trim();
+    saveState();
+    renderPaperStatus();
+    addDebateEntry({
+      speaker: "AI Secretariat",
+      title: "Position paper received",
+      content: "The dais confirms receipt and will evaluate alignment with committee mandate, evidence base, and diplomatic tone.",
+      badge: "Review queued",
     });
   });
+}
 
-  document.getElementById("clearHistory").addEventListener("click", () => {
-    if (!state.transactions.length) return;
-    state.transactions = [];
+function initSpeechForm() {
+  speechForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    if (!speechForm.reportValidity()) return;
+    if (!state.country || !state.committee) {
+      strikeWarning.textContent = "Select a country and committee before speaking.";
+      return;
+    }
+
+    const speech = speechInput.value.trim();
+    if (!speech) return;
+
+    const strikeIssued = handleStrike(speech);
+    updateHeader();
+
+    addDebateEntry({
+      speaker: state.country,
+      title: "Delegate speech",
+      content: speech,
+      badge: strikeIssued ? `Strike ${state.strikes}` : "Compliant",
+      badgeClass: strikeIssued ? "danger" : "",
+    });
+
+    addDebateEntry({
+      speaker: "AI Delegate",
+      title: "Response from opposing delegation",
+      content: buildAiResponse(speech),
+      badge: "Formal response",
+    });
+
+    speechForm.reset();
+  });
+
+  clearDebate.addEventListener("click", () => {
+    state.debateLog = [];
+    state.strikes = 0;
     saveState();
-    render();
+    updateHeader();
+    renderDebateLog();
+  });
+}
+
+function initFeedback() {
+  generateFeedback.addEventListener("click", () => {
+    const draft = resolutionInput.value.trim();
+    if (!draft) {
+      feedbackPanel.innerHTML = "<p class=\"muted\">Add a draft resolution before requesting feedback.</p>";
+      return;
+    }
+
+    feedbackPanel.innerHTML = `
+      <p><strong>Formal review</strong></p>
+      <ul>
+        <li>Ensure operative clauses begin with present-tense verbs and maintain consistent numbering.</li>
+        <li>Reference multilateral frameworks relevant to ${state.committee || "the committee"}.</li>
+        <li>Avoid informal phrasing, subjective adjectives, or first/second-person language.</li>
+        <li>Include verification mechanisms, funding sources, and timelines where appropriate.</li>
+      </ul>
+    `;
   });
 }
 
@@ -332,16 +249,12 @@ function initTheme() {
   applyTheme(state.theme);
 }
 
-function registerServiceWorker() {
-  if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js");
-  }
-}
-
-setDefaultDate();
-initNavigation();
-initModals();
-initForm();
+updateHeader();
+updateFormValues();
+renderPaperStatus();
+renderDebateLog();
+initSetup();
+initPositionPaper();
+initSpeechForm();
+initFeedback();
 initTheme();
-render();
-registerServiceWorker();
