@@ -3,12 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#0f1220" media="(prefers-color-scheme: dark)" />
-  <meta name="theme-color" content="#f2f5ff" media="(prefers-color-scheme: light)" />
-  <meta name="description" content="A glassy, offline-first personal finance PWA for teens." />
+  <meta name="theme-color" content="#121826" media="(prefers-color-scheme: dark)" />
+  <meta name="theme-color" content="#f5f6fb" media="(prefers-color-scheme: light)" />
+  <meta
+    name="description"
+    content="Practice Model United Nations debate with AI delegates powered by OpenAI. Draft position papers, earn strike-free speeches, and receive formal feedback."
+  />
   <link rel="manifest" href="manifest.json" />
   <link rel="stylesheet" href="styles.css" />
-  <title>GlassBudget</title>
+  <title>DiplomatAI MUN Practice</title>
 </head>
 <body>
   <div class="app">
@@ -16,8 +19,8 @@
       <div class="brand">
         <span class="orb"></span>
         <div>
-          <p class="eyebrow">Weekly budget</p>
-          <h1 id="weekTitle">This Week</h1>
+          <p class="eyebrow">MUN debate practice</p>
+          <h1>DiplomatAI</h1>
         </div>
       </div>
       <button id="toggleTheme" class="icon-btn" aria-label="Toggle theme">
@@ -26,196 +29,122 @@
     </header>
 
     <main>
-      <section id="home" class="view active">
-        <div class="hero glass">
-          <div class="hero-main">
-            <p class="eyebrow">Money left this week</p>
-            <h2 id="moneyLeft" class="amount">$0</h2>
-            <p id="budgetSummary" class="muted">Budget $0 • Spent $0</p>
-          </div>
-          <div class="hero-progress">
-            <div class="progress-track">
-              <div id="budgetProgress" class="progress-bar"></div>
-            </div>
-            <p id="budgetStatus" class="muted">Stay on track ✨</p>
-          </div>
+      <section class="hero glass">
+        <div>
+          <p class="eyebrow">Committee briefing</p>
+          <h2>Simulated debate chambers powered by OpenAI</h2>
+          <p class="muted">
+            Select a country and committee, submit a formal position paper, and engage in moderated debate.
+            The system issues strikes for first/second-person language and enforces strict parliamentary tone.
+          </p>
         </div>
-
-        <div class="grid">
-          <div class="card glass">
-            <div class="card-header">
-              <h3>Weekly plan</h3>
-              <button id="openBudget" class="text-btn">Edit</button>
-            </div>
-            <div class="card-body">
-              <p class="label">Weekly budget</p>
-              <p id="weeklyBudgetDisplay" class="stat">$0</p>
-              <p class="label">Week starts</p>
-              <p id="weekStartDisplay" class="stat">Monday</p>
-            </div>
+        <div class="hero-grid">
+          <div>
+            <p class="label">Active country</p>
+            <p id="activeCountry" class="stat">Not selected</p>
           </div>
-
-          <div class="card glass">
-            <div class="card-header">
-              <h3>Savings goal</h3>
-              <button id="openGoal" class="text-btn">Edit</button>
-            </div>
-            <div class="card-body">
-              <p id="goalSummary" class="stat">$0 / $0</p>
-              <div class="progress-track small">
-                <div id="goalProgress" class="progress-bar"></div>
-              </div>
-              <p id="goalStatus" class="muted">Set a goal to track progress.</p>
-            </div>
+          <div>
+            <p class="label">Committee</p>
+            <p id="activeCommittee" class="stat">Not selected</p>
           </div>
-        </div>
-
-        <div class="card glass">
-          <div class="card-header">
-            <h3>Recent activity</h3>
-            <button id="jumpHistory" class="text-btn">See all</button>
-          </div>
-          <div id="recentList" class="list"></div>
-        </div>
-      </section>
-
-      <section id="add" class="view">
-        <div class="card glass">
-          <h3>Add expense</h3>
-          <form id="expenseForm" class="form">
-            <label>
-              <span>Amount</span>
-              <input type="number" step="0.01" min="0" id="expenseAmount" placeholder="$5.00" required />
-            </label>
-            <label>
-              <span>Category</span>
-              <select id="expenseCategory">
-                <option value="Food">Food</option>
-                <option value="Transport">Transport</option>
-                <option value="Fun">Fun</option>
-                <option value="Shopping">Shopping</option>
-                <option value="School">School</option>
-                <option value="Other">Other</option>
-              </select>
-            </label>
-            <label>
-              <span>Note</span>
-              <input type="text" id="expenseNote" placeholder="Bubble tea" maxlength="40" />
-            </label>
-            <label>
-              <span>Date</span>
-              <input type="date" id="expenseDate" required />
-            </label>
-            <button class="primary" type="submit">Save expense</button>
-          </form>
-        </div>
-
-        <div class="card glass">
-          <h3>Quick add</h3>
-          <div class="chips">
-            <button class="chip" data-amount="5" data-category="Food">Snack $5</button>
-            <button class="chip" data-amount="12" data-category="Transport">Ride $12</button>
-            <button class="chip" data-amount="20" data-category="Fun">Hangout $20</button>
+          <div>
+            <p class="label">Strike count</p>
+            <p id="strikeCount" class="stat">0 / 3</p>
           </div>
         </div>
       </section>
 
-      <section id="history" class="view">
-        <div class="card glass">
-          <div class="card-header">
-            <h3>Transaction history</h3>
-            <button id="clearHistory" class="text-btn danger">Clear</button>
-          </div>
-          <div id="historyList" class="list"></div>
+      <section class="card glass">
+        <div class="card-header">
+          <h3>Delegate setup</h3>
+          <button id="saveSetup" class="text-btn">Save</button>
         </div>
+        <form id="setupForm" class="form">
+          <label>
+            <span>Country</span>
+            <select id="countrySelect" required>
+              <option value="">Select a country</option>
+              <option>Brazil</option>
+              <option>Canada</option>
+              <option>France</option>
+              <option>Ghana</option>
+              <option>India</option>
+              <option>Japan</option>
+              <option>Kenya</option>
+              <option>Mexico</option>
+              <option>Norway</option>
+              <option>Qatar</option>
+              <option>South Africa</option>
+            </select>
+          </label>
+          <label>
+            <span>Committee</span>
+            <select id="committeeSelect" required>
+              <option value="">Select a committee</option>
+              <option>UN Security Council</option>
+              <option>World Health Assembly</option>
+              <option>UNHRC</option>
+              <option>UNEP</option>
+              <option>ECOSOC</option>
+              <option>Special Political and Decolonization (SPECPOL)</option>
+            </select>
+          </label>
+          <label>
+            <span>Delegate focus</span>
+            <input id="focusInput" type="text" placeholder="e.g., cybersecurity, climate finance" maxlength="80" />
+          </label>
+        </form>
       </section>
 
-      <section id="insights" class="view">
-        <div class="card glass">
-          <h3>Insights</h3>
-          <div class="insight-grid">
-            <div>
-              <p class="label">Top category</p>
-              <p id="topCategory" class="stat">--</p>
-            </div>
-            <div>
-              <p class="label">Avg. daily spend</p>
-              <p id="avgDaily" class="stat">$0</p>
-            </div>
-          </div>
+      <section class="card glass">
+        <div class="card-header">
+          <h3>Position paper</h3>
+          <button id="submitPaper" class="text-btn">Submit</button>
         </div>
-        <div class="card glass">
-          <h3>Category totals</h3>
-          <div id="categoryTotals" class="list"></div>
+        <form id="paperForm" class="form">
+          <label>
+            <span>Committee topic</span>
+            <input id="topicInput" type="text" placeholder="Topic under discussion" maxlength="120" required />
+          </label>
+          <label>
+            <span>Position paper draft</span>
+            <textarea id="paperInput" rows="6" placeholder="Write in third person with formal tone." required></textarea>
+          </label>
+          <p id="paperStatus" class="muted">Awaiting submission.</p>
+        </form>
+      </section>
+
+      <section class="card glass">
+        <div class="card-header">
+          <h3>Debate floor</h3>
+          <button id="clearDebate" class="text-btn danger">Clear</button>
+        </div>
+        <div id="debateLog" class="debate-log"></div>
+        <form id="speechForm" class="form">
+          <label>
+            <span>Speech input</span>
+            <textarea id="speechInput" rows="4" placeholder="Deliver a formal statement in third person." required></textarea>
+          </label>
+          <button class="primary" type="submit">Send speech</button>
+          <p id="strikeWarning" class="muted"></p>
+        </form>
+      </section>
+
+      <section class="card glass">
+        <div class="card-header">
+          <h3>Resolution feedback</h3>
+          <button id="generateFeedback" class="text-btn">Generate</button>
+        </div>
+        <label class="form">
+          <span>Draft resolution clauses</span>
+          <textarea id="resolutionInput" rows="5" placeholder="Paste operative clauses for review."></textarea>
+        </label>
+        <div id="feedbackPanel" class="feedback-panel">
+          <p class="muted">Submit a draft to receive structured feedback from the AI dais.</p>
         </div>
       </section>
     </main>
-
-    <nav class="bottom-nav glass">
-      <button class="nav-btn active" data-target="home">Home</button>
-      <button class="nav-btn" data-target="add">Add</button>
-      <button class="nav-btn" data-target="history">History</button>
-      <button class="nav-btn" data-target="insights">Insights</button>
-    </nav>
   </div>
-
-  <div id="budgetModal" class="modal">
-    <div class="modal-content glass">
-      <h3>Weekly budget</h3>
-      <label>
-        <span>Budget amount</span>
-        <input type="number" min="0" step="0.01" id="weeklyBudgetInput" />
-      </label>
-      <label>
-        <span>Week starts on</span>
-        <select id="weekStartInput">
-          <option value="0">Sunday</option>
-          <option value="1">Monday</option>
-          <option value="2">Tuesday</option>
-          <option value="3">Wednesday</option>
-          <option value="4">Thursday</option>
-          <option value="5">Friday</option>
-          <option value="6">Saturday</option>
-        </select>
-      </label>
-      <div class="modal-actions">
-        <button class="text-btn" data-close="budgetModal">Cancel</button>
-        <button id="saveBudget" class="primary">Save</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="goalModal" class="modal">
-    <div class="modal-content glass">
-      <h3>Savings goal</h3>
-      <label>
-        <span>Goal amount</span>
-        <input type="number" min="0" step="0.01" id="goalAmountInput" />
-      </label>
-      <label>
-        <span>Already saved</span>
-        <input type="number" min="0" step="0.01" id="goalSavedInput" />
-      </label>
-      <div class="modal-actions">
-        <button class="text-btn" data-close="goalModal">Cancel</button>
-        <button id="saveGoal" class="primary">Save</button>
-      </div>
-    </div>
-  </div>
-
-  <template id="transactionTemplate">
-    <div class="list-item">
-      <div>
-        <p class="list-title"></p>
-        <p class="list-sub"></p>
-      </div>
-      <div class="list-actions">
-        <p class="list-amount"></p>
-        <button class="icon-btn edit" aria-label="Edit">✎</button>
-        <button class="icon-btn delete" aria-label="Delete">✕</button>
-      </div>
-    </div>
-  </template>
 
   <script src="app.js" defer></script>
 </body>
